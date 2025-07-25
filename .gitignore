@@ -1,0 +1,4 @@
+src/cores
+bin/
+*.o
+src/test.png
