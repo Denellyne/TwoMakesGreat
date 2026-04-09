@@ -9,7 +9,9 @@ public:
   LTexture(const LTexture &) = delete;
   LTexture &operator=(const LTexture &) = delete;
   LTexture(LTexture &&) = default;
-  bool render(const Utils::Vec2 pos) const;
+  bool render(const Utils::Vec2 pos, const Utils::Vec2 dimensions) const;
+  SDL_Texture *getTexture() const { return this->_texture.get(); }
+  std::weak_ptr<SDL_Renderer> getRenderer() const { return this->_renderer; }
 
 private:
   struct SDLDeleter {

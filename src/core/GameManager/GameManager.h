@@ -1,20 +1,34 @@
 #pragma once
 #include "../RenderWindow/RenderWindow.h"
-#include <print>
+#include "../RenderWindow/UI/Counter.h"
 
 class GameManager {
 public:
   GameManager();
-  void setUI() {
+  void render() {
 
-    std::println("Adding UI elements");
-    this->renderer.pushUITexture(
-        Entity("../res/background.png", this->renderer.getRenderer()));
-    std::println("Added all UI elements");
+    bool isRunning = true;
+    while (isRunning) {
+      this->renderer.render(&isRunning);
+      player1Score++;
+      player2Score++;
+    }
   }
-  void render() { this->renderer.render(); }
 
 private:
   unsigned player1Score = 0, player2Score = 0;
   RenderWindow renderer = RenderWindow(60);
+  void setUI() {
+
+    this->renderer.clearUI();
+    this->renderer.clearEntities();
+    this->renderer.pushUITexture(
+        new Entity("../res/bg/menu.png", this->renderer.getRenderer()));
+    this->renderer.pushUITexture(new Counter(
+        "../res/ui/counter.jpg", this->renderer.getRenderer(),
+        this->renderer.getTTF(), {30, 10}, {100, 50}, &player1Score));
+    this->renderer.pushUITexture(new Counter(
+        "../res/ui/counter.jpg", this->renderer.getRenderer(),
+        this->renderer.getTTF(), {400, 10}, {100, 50}, &player2Score));
+  }
 };

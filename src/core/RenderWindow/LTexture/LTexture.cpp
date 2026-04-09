@@ -11,7 +11,8 @@ LTexture::LTexture(const char *texturePath,
   assert(this->_texture != nullptr);
 }
 
-bool LTexture::render(const Utils::Vec2 pos) const {
+bool LTexture::render(const Utils::Vec2 pos,
+                      const Utils::Vec2 dimensions) const {
   assert(this->_texture != nullptr);
   float x, y;
 
@@ -20,13 +21,17 @@ bool LTexture::render(const Utils::Vec2 pos) const {
     return 1;
   }
 
-  const SDL_FRect rect{pos.m_x, pos.m_y, x, y};
+  SDL_FRect rect{pos.m_x, pos.m_y, x, y};
+  if (dimensions.m_x != 0 || dimensions.m_y != 0) {
+    rect.w = dimensions.m_x;
+    rect.h = dimensions.m_y;
+  }
+
   if (!SDL_RenderTexture(this->_renderer.lock().get(), this->_texture.get(),
                          NULL, &rect)) {
     SDL_Log("Rendering texture failure: %s", SDL_GetError());
     return 1;
   }
-
   return 0;
 }
 
