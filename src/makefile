@@ -1,5 +1,5 @@
 CXX = g++
-CFLAGS = -fimplicit-constexpr -std=c++20 -lSDL3 -lSDL3_image
+CFLAGS = -fimplicit-constexpr -std=c++26 -lSDL3 -lSDL3_image
 INCLUDES := $(shell find . -name '*.cpp')
 OBJ := $(patsubst %.cpp,%.o,$(INCLUDES))
 TEST := *.md

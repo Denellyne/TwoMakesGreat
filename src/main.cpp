@@ -1,8 +1,6 @@
-#include "core/Renderer/RenderWindow.h"
-
+#include "core/GameManager/GameManager.h"
 int main(int argc, char *argv[]) {
 
-  RenderWindow renderWindow;
-
+  GameManager manager;
   return 0;
 }

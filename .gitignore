@@ -2,3 +2,5 @@ src/cores
 bin/
 *.o
 src/test.png
+compile_commands.json
+.cache
