@@ -1,10 +1,12 @@
 #include "RenderWindow.h"
 #include <SDL3/SDL_error.h>
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_timer.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <cstdint>
 #include <print>
 
 RenderWindow::RenderWindow(const unsigned refreshRate) {
@@ -17,14 +19,14 @@ RenderWindow::RenderWindow(const unsigned refreshRate) {
     return;
   }
 
-  if (!createWindow(1024, 720, "TwoMakesGreat")) {
+  auto [w, h] = this->_dimensions;
+  if (!createWindow(w, h, "TwoMakesGreat")) {
     SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
     return;
   }
 
-  this->_ttf = std::shared_ptr<TTF_TextEngine>(
-      TTF_CreateRendererTextEngine(this->_renderer.get()),
-      RenderWindow::SDLDeleter{});
+  this->_ttf = TTFPtr(TTF_CreateRendererTextEngine(this->_renderer.get()),
+                      RenderWindow::SDLDeleter{});
 
   if (!this->_ttf.get()) {
     SDL_Log("Couldn't create TTF renderer: %s", SDL_GetError());
@@ -40,7 +42,7 @@ RenderWindow::~RenderWindow() {
   SDL_Quit();
 }
 void RenderWindow::setFrameRate(const unsigned refreshRate) {
-  this->refreshRate = 1000.f / refreshRate;
+  this->_refreshRate = 1000000000.f / refreshRate;
 }
 
 bool RenderWindow::createWindow(const int width, const int height,
@@ -52,8 +54,8 @@ bool RenderWindow::createWindow(const int width, const int height,
     return false;
   }
 
-  this->_renderer = std::shared_ptr<SDL_Renderer>(
-      SDL_CreateRenderer(this->_window, NULL), RenderWindow::SDLDeleter{});
+  this->_renderer = RendererPtr(SDL_CreateRenderer(this->_window, NULL),
+                                RenderWindow::SDLDeleter{});
   if (this->_renderer.get() == NULL) {
     SDL_Log("Unable to create renderer: %s", SDL_GetError());
     return false;
@@ -65,11 +67,13 @@ bool RenderWindow::createWindow(const int width, const int height,
 }
 
 void RenderWindow::render(bool *isRunning) {
-  const unsigned startTicks = SDL_GetTicks();
+  const uint64_t startTicks = SDL_GetTicksNS();
   SDL_Event event;
   while (SDL_PollEvent(&event))
     if (event.type == SDL_EVENT_QUIT)
       *isRunning = false;
+    else if (event.type == SDL_EVENT_WINDOW_RESIZED)
+      this->_dimensions = {event.window.data1, event.window.data2};
 
   SDL_RenderClear(this->_renderer.get());
   if (renderUI() || renderEntities())
@@ -77,32 +81,32 @@ void RenderWindow::render(bool *isRunning) {
 
   SDL_RenderPresent(this->_renderer.get());
 
-  const unsigned endTicks = SDL_GetTicks();
-  if (const unsigned left = endTicks - startTicks; left < this->refreshRate)
-    SDL_Delay(this->refreshRate - left);
+  const uint64_t endTicks = SDL_GetTicksNS();
+  if (const uint64_t left = endTicks - startTicks; left < this->_refreshRate)
+    SDL_DelayPrecise(this->_refreshRate - left);
 
-  std::println("FPS:{}", (1000.f / (SDL_GetTicks() - startTicks)));
+  std::println("FPS:{}", (1000000000.f / (SDL_GetTicksNS() - startTicks)));
 }
 
-bool RenderWindow::renderUI() {
+bool RenderWindow::renderUI() const {
   for (const auto &texture : this->_ui)
     if (texture->render())
       return 1;
 
   return 0;
 }
-bool RenderWindow::renderEntities() {
+bool RenderWindow::renderEntities() const {
   for (const auto &entity : this->_entities)
     if (entity->render())
       return 1;
   return 0;
 }
 
-std::weak_ptr<SDL_Renderer> RenderWindow::getRenderer() {
+RendererWPtr RenderWindow::getRenderer() {
   assert(this->_renderer.get() != nullptr);
   return this->_renderer;
 }
-std::weak_ptr<TTF_TextEngine> RenderWindow::getTTF() {
+TTFWPtr RenderWindow::getTTF() {
   assert(this->_ttf.get() != nullptr);
   return this->_ttf;
 }

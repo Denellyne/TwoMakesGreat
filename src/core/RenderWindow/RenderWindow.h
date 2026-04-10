@@ -3,27 +3,21 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cassert>
-#include <memory>
 #include <vector>
 
 class RenderWindow {
 public:
   RenderWindow() = delete;
-  RenderWindow(const unsigned refreshRate);
+  RenderWindow(const unsigned refreshRate = 60);
   ~RenderWindow();
   void render(bool *isRunning);
-  void pushEntity(Entity *entity) {
-    _entities.emplace_back(std::unique_ptr<Entity>(entity));
-  }
-  void pushUITexture(Entity *texture) {
-    _ui.emplace_back(std::unique_ptr<Entity>(texture));
-  }
+  void pushEntity(Entity *entity) { _entities.emplace_back(EntityPtr(entity)); }
+  void pushUITexture(Entity *texture) { _ui.emplace_back(EntityPtr(texture)); }
   void clearEntities() { _entities.clear(); }
   void clearUI() { _ui.clear(); }
-  std::weak_ptr<SDL_Renderer> getRenderer();
-  std::weak_ptr<TTF_TextEngine> getTTF();
-
-  float refreshRate = 0.f;
+  RendererWPtr getRenderer();
+  TTFWPtr getTTF();
+  const float getRefreshRate() { return this->_refreshRate; }
 
 private:
   struct SDLDeleter {
@@ -32,14 +26,19 @@ private:
       TTF_DestroyRendererTextEngine(ptr);
     }
   };
-  bool createWindow(const int width, const int height, const char *name);
-  bool renderEntities();
-  bool renderUI();
-  void setFrameRate(const unsigned refreshRate);
+  typedef std::unique_ptr<Entity> EntityPtr;
 
-  std::shared_ptr<SDL_Renderer> _renderer{nullptr};
-  std::shared_ptr<TTF_TextEngine> _ttf{nullptr};
+  bool createWindow(const int width, const int height, const char *name);
+  bool renderEntities() const;
+  bool renderUI() const;
+  void setFrameRate(const unsigned refreshRate);
+  void handleInput();
+
+  float _refreshRate = 0.f;
+  Utils::Vec2 _dimensions = {1024, 720};
+  RendererPtr _renderer{nullptr};
+  TTFPtr _ttf{nullptr};
   SDL_Window *_window = nullptr;
-  std::vector<std::unique_ptr<Entity>> _entities;
-  std::vector<std::unique_ptr<Entity>> _ui;
+  std::vector<EntityPtr> _entities;
+  std::vector<EntityPtr> _ui;
 };

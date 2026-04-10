@@ -1,5 +1,6 @@
 #pragma once
 #include "../Entity/Entity.h"
+#include "../typedef.h"
 #include <SDL3/SDL_render.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cassert>
@@ -8,13 +9,12 @@
 
 class Counter : public Entity {
 public:
-  Counter(const char *texturePath, std::weak_ptr<SDL_Renderer> renderer,
-          std::weak_ptr<TTF_TextEngine> ptr, const Utils::Vec2 pos = {0, 0},
-          const Utils::Vec2 dimensions = {0, 0}, unsigned *const counter = 0)
+  Counter(const char *texturePath, RendererWPtr renderer, TTFWPtr ptr,
+          const Utils::Vec2 pos = {0, 0}, const Utils::Vec2 dimensions = {0, 0},
+          unsigned *const counter = 0)
       : Entity(texturePath, renderer, pos, dimensions), _ttf(ptr),
         _counter(counter) {
-    _font = std::unique_ptr<TTF_Font, TTFDeleter>(
-        TTF_OpenFont("../res/fonts/font.ttf", this->_fontSize));
+    _font = FontPtr(TTF_OpenFont("../res/fonts/font.ttf", this->_fontSize));
   }
   bool render() const override {
     assert(this->_font.get() != nullptr);
@@ -62,8 +62,11 @@ private:
   struct TTFDeleter {
     void operator()(TTF_Font *ptr) { TTF_CloseFont(ptr); }
   };
+
+  typedef std::unique_ptr<TTF_Font, TTFDeleter> FontPtr;
+
   unsigned *_counter = 0;
   float _fontSize = 32.f;
-  std::weak_ptr<TTF_TextEngine> _ttf;
-  std::unique_ptr<TTF_Font, TTFDeleter> _font{nullptr};
+  TTFWPtr _ttf;
+  FontPtr _font{nullptr};
 };

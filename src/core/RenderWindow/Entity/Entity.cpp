@@ -6,8 +6,8 @@
 #include <SDL3_image/SDL_image.h>
 #include <cassert>
 
-Entity::Entity(const char *texturePath, std::weak_ptr<SDL_Renderer> renderer,
-               Utils::Vec2 pos, Utils::Vec2 dimensions)
+Entity::Entity(const char *texturePath, RendererWPtr renderer, Utils::Vec2 pos,
+               Utils::Vec2 dimensions)
     : _texture(LTexture(texturePath, renderer)), _pos(pos),
       _dimensions(dimensions) {}
 

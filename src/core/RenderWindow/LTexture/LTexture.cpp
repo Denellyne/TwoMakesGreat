@@ -2,12 +2,10 @@
 #include <SDL3_image/SDL_image.h>
 #include <cassert>
 
-LTexture::LTexture(const char *texturePath,
-                   std::weak_ptr<SDL_Renderer> renderer)
+LTexture::LTexture(const char *texturePath, RendererWPtr renderer)
     : _renderer(renderer) {
 
-  this->_texture = std::unique_ptr<SDL_Texture, LTexture::SDLDeleter>(
-      loadTexture(texturePath), LTexture::SDLDeleter{});
+  this->_texture = TexturePtr(loadTexture(texturePath), LTexture::SDLDeleter{});
   assert(this->_texture != nullptr);
 }
 
