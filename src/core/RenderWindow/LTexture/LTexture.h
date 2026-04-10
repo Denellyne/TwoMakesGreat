@@ -3,6 +3,7 @@
 #include "../typedef.h"
 #include <SDL3/SDL_render.h>
 #include <memory>
+#include <optional>
 class LTexture {
 public:
   LTexture() {};
@@ -10,8 +11,13 @@ public:
   LTexture(const LTexture &) = delete;
   LTexture &operator=(const LTexture &) = delete;
   LTexture(LTexture &&) = default;
-  bool render(const Utils::Vec2 pos, const Utils::Vec2 dimensions) const;
+  bool render(const Utils::Vec2 &pos, const Utils::Vec2 &dimensions,
+              const Utils::Vec2 &windowDimensions) const;
   SDL_Texture *getTexture() const { return this->_texture.get(); }
+  static bool renderTexture(SDL_Texture *const texture, RendererWPtr renderer,
+                            const Utils::Vec2 &pos,
+                            const Utils::Vec2 &dimensions,
+                            const Utils::Vec2 &windowDimensions);
   std::weak_ptr<SDL_Renderer> getRenderer() const { return this->_renderer; }
 
 private:
@@ -19,6 +25,10 @@ private:
     void operator()(SDL_Texture *ptr) const { SDL_DestroyTexture(ptr); }
   };
   typedef std::unique_ptr<SDL_Texture, SDLDeleter> TexturePtr;
+  static constexpr std::optional<SDL_FRect>
+  scaleToWindowSize(SDL_Texture *const texture, const Utils::Vec2 &pos,
+                    const Utils::Vec2 &dimensions,
+                    const Utils::Vec2 &windowDimensions);
 
   TexturePtr _texture = nullptr;
   RendererWPtr _renderer;

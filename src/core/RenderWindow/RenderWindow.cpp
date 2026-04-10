@@ -1,4 +1,5 @@
 #include "RenderWindow.h"
+#include "Entity/Entity.h"
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_filesystem.h>
@@ -14,13 +15,16 @@ RenderWindow::RenderWindow(const unsigned refreshRate) {
     SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
     return;
   }
+
+  SDL_SetHint(SDL_HINT_WINDOWS_CLOSE_ON_ALT_F4, "0");
+
   if (!TTF_Init()) {
     SDL_Log("Couldn't initialize TTF: %s", SDL_GetError());
     return;
   }
 
-  auto [w, h] = this->_dimensions;
-  if (!createWindow(w, h, "TwoMakesGreat")) {
+  if (const auto [w, h] = this->_dimensions;
+      !createWindow(w, h, "TwoMakesGreat")) {
     SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
     return;
   }
@@ -37,9 +41,14 @@ RenderWindow::RenderWindow(const unsigned refreshRate) {
   std::println("Init Success");
 }
 RenderWindow::~RenderWindow() {
-  SDL_DestroyWindow(this->_window);
+  this->clearEntities();
+  this->clearUI();
+  std::println("Quitting SDL and TTF");
+  if (this->_window)
+    SDL_DestroyWindow(this->_window);
   TTF_Quit();
   SDL_Quit();
+  std::println("Exiting...");
 }
 void RenderWindow::setFrameRate(const unsigned refreshRate) {
   this->_refreshRate = 1000000000.f / refreshRate;
@@ -70,7 +79,8 @@ void RenderWindow::render(bool *isRunning) {
   const uint64_t startTicks = SDL_GetTicksNS();
   SDL_Event event;
   while (SDL_PollEvent(&event))
-    if (event.type == SDL_EVENT_QUIT)
+    if (event.type == SDL_EVENT_QUIT ||
+        event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
       *isRunning = false;
     else if (event.type == SDL_EVENT_WINDOW_RESIZED)
       this->_dimensions = {event.window.data1, event.window.data2};
@@ -90,14 +100,14 @@ void RenderWindow::render(bool *isRunning) {
 
 bool RenderWindow::renderUI() const {
   for (const auto &texture : this->_ui)
-    if (texture->render())
+    if (texture->render(this->_dimensions))
       return 1;
 
   return 0;
 }
 bool RenderWindow::renderEntities() const {
-  for (const auto &entity : this->_entities)
-    if (entity->render())
+  for (const std::shared_ptr<Entity> &entity : this->_entities)
+    if (entity->render(this->_dimensions))
       return 1;
   return 0;
 }

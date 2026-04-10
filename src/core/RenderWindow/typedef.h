@@ -6,3 +6,6 @@ typedef std::weak_ptr<SDL_Renderer> RendererWPtr;
 typedef std::shared_ptr<SDL_Renderer> RendererPtr;
 typedef std::shared_ptr<TTF_TextEngine> TTFPtr;
 typedef std::weak_ptr<TTF_TextEngine> TTFWPtr;
+
+class Entity;
+typedef std::shared_ptr<Entity> EntityPtr;

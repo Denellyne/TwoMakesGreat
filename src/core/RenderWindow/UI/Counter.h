@@ -16,11 +16,11 @@ public:
         _counter(counter) {
     _font = FontPtr(TTF_OpenFont("../res/fonts/font.ttf", this->_fontSize));
   }
-  bool render() const override {
+  bool render(const Utils::Vec2 &dimensions) const override {
     assert(this->_font.get() != nullptr);
     assert(this->_ttf.lock().get() != nullptr);
 
-    if (this->_texture.render(this->_pos, this->_dimensions))
+    if (this->_texture.render(this->_pos, this->_dimensions, dimensions))
       return 1;
 
     const float x = this->_pos.m_x +
@@ -30,7 +30,7 @@ public:
 
     if (SDL_Surface *surface = TTF_RenderText_Solid(
             this->_font.get(), std::to_string(*this->_counter).c_str(), 0,
-            {0, 0, 0});
+            {0, 0, 0, 255});
         !surface) {
       SDL_Log("Couldn't render ttf text: %s", SDL_GetError());
       return 1;
@@ -44,9 +44,9 @@ public:
         return 1;
       } else {
         SDL_DestroySurface(surface);
-        const SDL_FRect rect{x, y, this->_fontSize, this->_fontSize};
-        if (!SDL_RenderTexture(this->_texture.getRenderer().lock().get(),
-                               texture, NULL, &rect)) {
+        if (LTexture::renderTexture(texture, this->_texture.getRenderer(),
+                                    {x, y}, {this->_fontSize, this->_fontSize},
+                                    dimensions)) {
           SDL_Log("Couldn't render text: %s", SDL_GetError());
           SDL_DestroyTexture(texture);
           return 1;
@@ -60,13 +60,14 @@ public:
 
 private:
   struct TTFDeleter {
-    void operator()(TTF_Font *ptr) { TTF_CloseFont(ptr); }
+    void operator()(TTF_Font *ptr) const { TTF_CloseFont(ptr); }
   };
 
   typedef std::unique_ptr<TTF_Font, TTFDeleter> FontPtr;
 
-  unsigned *_counter = 0;
-  float _fontSize = 32.f;
-  TTFWPtr _ttf;
+  const float _fontSize = 32.f;
+  TTFWPtr _ttf{};
+  unsigned *_counter = nullptr;
   FontPtr _font{nullptr};
+  // make texture for string and only create it again if the val changes
 };

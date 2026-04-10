@@ -6,11 +6,11 @@
 #include <SDL3_image/SDL_image.h>
 #include <cassert>
 
-Entity::Entity(const char *texturePath, RendererWPtr renderer, Utils::Vec2 pos,
-               Utils::Vec2 dimensions)
+Entity::Entity(const char *texturePath, RendererWPtr renderer,
+               const Utils::Vec2 pos, const Utils::Vec2 dimensions)
     : _texture(LTexture(texturePath, renderer)), _pos(pos),
       _dimensions(dimensions) {}
 
-bool Entity::render() const {
-  return this->_texture.render(this->_pos, this->_dimensions);
+bool Entity::render(const Utils::Vec2 &dimensions) const {
+  return this->_texture.render(this->_pos, this->_dimensions, dimensions);
 }

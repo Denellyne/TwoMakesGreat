@@ -4,6 +4,7 @@
 class GameManager {
 public:
   GameManager();
+
   void render();
 
 private:

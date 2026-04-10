@@ -1,5 +1,6 @@
 CXX = g++
-CFLAGS =-O2 -flto=auto -march=native -fimplicit-constexpr -std=c++26 -lSDL3 -lSDL3_image -lSDL3_ttf
+CFLAGS = -fimplicit-constexpr -std=c++26 -lSDL3 -lSDL3_image -lSDL3_ttf
+OFLAGS = -O2 -flto=auto -march=native
 INCLUDES := $(shell find . -name '*.cpp')
 OBJ := $(patsubst %.cpp,%.o,$(INCLUDES))
 TEST := *.md
@@ -12,17 +13,17 @@ cr : clean run
 
 build: $(OBJ)
 	@echo "Linking..."
-	$(CXX) $(CFLAGS) $(OBJ) -o $(OUT) 
+	$(CXX) $(OFLAGS) $(CFLAGS) $(OBJ) -o $(OUT) 
 	
 
 %.o: %.cpp 
 	@echo "Compiling..."
-	$(CXX) $(CFLAGS) -c $< -o $@  	
+	$(CXX) $(OFLAGS) $(CFLAGS) -c $< -o $@  	
 	@echo "Compiled:" $@
 
 run: $(OBJ)
 	@echo "Linking..."
-	$(CXX) $(CFLAGS) $(OBJ) -o $(OUT) 
+	$(CXX) $(OFLAGS) $(CFLAGS) $(OBJ) -o $(OUT) 
 	@$(OUT)
 
 debug: 

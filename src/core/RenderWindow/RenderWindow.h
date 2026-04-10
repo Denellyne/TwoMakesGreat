@@ -1,5 +1,7 @@
 #pragma once
-#include "Entity/Entity.h"
+#include "../Utils/Math/math.h"
+#include "defines.h"
+#include "typedef.h"
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cassert>
@@ -11,13 +13,13 @@ public:
   RenderWindow(const unsigned refreshRate = 60);
   ~RenderWindow();
   void render(bool *isRunning);
-  void pushEntity(Entity *entity) { _entities.emplace_back(EntityPtr(entity)); }
-  void pushUITexture(Entity *texture) { _ui.emplace_back(EntityPtr(texture)); }
+  void pushEntity(EntityPtr entity) { _entities.emplace_back(entity); }
+  void pushUITexture(EntityPtr texture) { _ui.emplace_back(texture); }
   void clearEntities() { _entities.clear(); }
   void clearUI() { _ui.clear(); }
   RendererWPtr getRenderer();
   TTFWPtr getTTF();
-  const float getRefreshRate() { return this->_refreshRate; }
+  float getRefreshRate() const { return this->_refreshRate; }
 
 private:
   struct SDLDeleter {
@@ -26,7 +28,6 @@ private:
       TTF_DestroyRendererTextEngine(ptr);
     }
   };
-  typedef std::unique_ptr<Entity> EntityPtr;
 
   bool createWindow(const int width, const int height, const char *name);
   bool renderEntities() const;
@@ -35,7 +36,7 @@ private:
   void handleInput();
 
   float _refreshRate = 0.f;
-  Utils::Vec2 _dimensions = {1024, 720};
+  Utils::Vec2 _dimensions = {windowWidth, windowHeight};
   RendererPtr _renderer{nullptr};
   TTFPtr _ttf{nullptr};
   SDL_Window *_window = nullptr;
